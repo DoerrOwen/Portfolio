@@ -105,7 +105,7 @@
     #work {
       min-height: calc(100vh - 120px);
       display: grid;
-      grid-template-columns: minmax(0, 2.6fr) minmax(0, 1.2fr);
+      grid-template-columns: minmax(0, 3.2fr) minmax(0, 1fr);
       grid-template-areas: "left projects";
       gap: 40px;
       align-items: center;
@@ -244,6 +244,7 @@
       letter-spacing: -0.055em;
       font-weight: 600;
       color: #fdfaf4;
+	  margin-top: 4px;
     }
     .intro-role {
       font-size: 16px;
@@ -272,8 +273,9 @@
       gap: 18px;
     }
     .intro-avatar {
-      width: 84px;
-      height: 84px;
+      width: 96px;
+      height: 96px;
+	  margin-left: -32px;
       border-radius: 50%;
       object-fit: cover;
       flex-shrink: 0;
@@ -320,10 +322,12 @@
       color: #fdfaf4;
     }
     .project-card-desc {
-      margin-top: 8px;
-      font-size: 14px;
-      color: #c1bccf;
-      max-width: 26rem;
+      margin-top: 10px;
+      font-size: 16px;
+      color: #f1eef9;
+      max-width: 30rem;
+	  text-shadow:0 0 8px rgba(255,255,255,0.04);
+	  white-space: pre-line;
     }
 
     /* LEFT PREVIEW (ONLY ON HOVER) */
@@ -483,6 +487,7 @@
       .g-span-3 { grid-column: span 3; }
       .g-span-12 { grid-column: span 6; }
       .g-h-lg { height: 340px; }
+	  .intro-header { gap: 22px; }
     }
 
     @media (max-width: 560px) {
@@ -492,6 +497,11 @@
       .g-h-sm { height: 190px; }
       .g-h-md { height: 260px; }
       .g-h-lg { height: 300px; }
+	  .intro-avatar {
+		margin-left: 0;
+		width: 80px;
+		height: 80px;
+	}
     }
 
     /* CONTACT SHEET */
@@ -580,18 +590,17 @@
             <div class="intro-name">owendoerr</div>
             <div class="intro-role">
               I am a screenwriter, video editor, game developer, programmer, cinephile/audiophile, DJ, and
-              lifelong skier from Boise, ID, living in Los Angeles. <br><br>
-              When I'm not in Final Draft, I'm in Adobe Suite, Unity, Ableton, or playing with AI. I know Python, Java, C#, JavaScript, and HTML.
+              lifelong skier from Boise, ID, living in Los Angeles.
 			  <br><br> This is a home for some of the things I've made.
             </div>
 
             <div class="intro-links">
               <a href="mailto:ovvendoerr@gmail.com">Email</a>
               <a href="https://www.linkedin.com/in/owen-doerr/" target="_blank" rel="noreferrer">LinkedIn</a>
-              <a href="https://www.youtube.com/@owendoerr" target="_blank" rel="noreferrer">YouTube</a>
-              <a href="https://odoerr.itch.io/" target="_blank" rel="noreferrer">itch.io</a>
               <a href="https://soundcloud.com/ododee" target="_blank" rel="noreferrer">SoundCloud</a>
-              <a href="https://github.com/DoerrOwen" target="_blank" rel="noreferrer">GitHub</a>
+              <a href="https://odoerr.itch.io/" target="_blank" rel="noreferrer">itch.io</a>
+              <a href="https://boxd.it/bh7JV" target="_blank" rel="noreferrer">Letterboxd</a>
+              <a href="https://www.youtube.com/@owendoerr" target="_blank" rel="noreferrer">YouTube</a>
             </div>
               </div>
             </div>
@@ -599,82 +608,41 @@
           </div>
 
           <div class="intro-card intro-card--project" id="projectCard">
-            <div class="project-card-label">Project</div>
             <div class="project-card-title" id="projectTitle">The Program</div>
             <div class="project-card-desc" id="projectDesc">
-              Short time-bending film made solo in my bedroom — writing, shooting, and editing.
             </div>
           </div>
         </div>
       </div>
 
+	  <div class="project-list" id="projectList">
+        <div class="project-item"
+          data-title="Trackgeist"
+          data-type="Game"
+          data-year="2024"
+          data-desc="Welcome to Berlin. This is a manifestation of my desire to visit Berghain. 
+		  
+		  A little tiny choose-your-own-adventure narrative mixed with an arrow-keys rythm game."
+          data-image="images/CarlaAnim.gif"
+          data-link="https://odoerr.itch.io/trackgeist">
+          <div class="project-item-label">
+            <div class="project-item-title"><span>Trackgesit</span></div>
+            <div class="project-item-type">Narrative/Rhythm Game</div>
+          </div>
+          <div class="project-item-year">2024</div>
+        </div>
+
       <div class="project-list" id="projectList">
-        <div class="project-item"
-          data-title="The Program"
-          data-type="Film"
-          data-year="2024"
-          data-desc="Short time-bending film made solo in my bedroom — writing, shooting, and editing."
-          data-image="images/theprogram.png"
-          data-link="https://www.youtube.com/watch?v=QYhyTDKIE9M">
-          <div class="project-item-label">
-            <div class="project-item-title"><span>The Program</span></div>
-            <div class="project-item-type">Film</div>
-          </div>
-          <div class="project-item-year">2024</div>
-        </div>
-
-        <div class="project-item"
-          data-title="LMU Christmas Blessing"
-          data-type="Film"
-          data-year="2024"
-          data-desc="Camera and edit for Loyola Marymount University’s 2024 Christmas message."
-          data-image="images/fathere.jpg"
-          data-link="https://www.instagram.com/reel/DEAW4YbScQ9/">
-          <div class="project-item-label">
-            <div class="project-item-title"><span>LMU Christmas Blessing</span></div>
-            <div class="project-item-type">Film</div>
-          </div>
-          <div class="project-item-year">2024</div>
-        </div>
-
-        <div class="project-item"
-          data-title="Reel for Recess"
-          data-type="Film"
-          data-year="2024"
-          data-desc="High-energy festival promo for @takearecess at Lightning in a Bottle."
-          data-image="images/thumbs/01.jpg"
-          data-link="https://www.instagram.com/reel/C7ov3FWtXve/">
-          <div class="project-item-label">
-            <div class="project-item-title"><span>Reel for Recess</span></div>
-            <div class="project-item-type">Film</div>
-          </div>
-          <div class="project-item-year">2024</div>
-        </div>
-
-        <div class="project-item"
-          data-title="ΔΣΦ Rush Edit"
-          data-type="Film"
-          data-year="2025"
-          data-desc="Recruitment edit for LMU Delta Sigma Phi’s Spring 2025 rush process."
-          data-image="images/rushvideo.png"
-          data-link="https://www.instagram.com/p/DFOBS6zS08V/">
-          <div class="project-item-label">
-            <div class="project-item-title"><span>ΔΣΦ Rush Edit</span></div>
-            <div class="project-item-type">Film</div>
-          </div>
-          <div class="project-item-year">2025</div>
-        </div>
-
         <div class="project-item"
           data-title="Gardeno"
           data-type="Game"
           data-year="2024"
-          data-desc="A cozy gardening game built in Unity with original pixel art and music."
+          data-desc="A cozy gardening simulator built in Unity with original pixel art and a lil' jazz house background noise."
           data-image="images/thumbs/02.jpg"
           data-link="https://doerrowen.itch.io/gardeno">
           <div class="project-item-label">
             <div class="project-item-title"><span>Gardeno</span></div>
-            <div class="project-item-type">Game</div>
+            <div class="project-item-type">Mobile Game</div>
           </div>
           <div class="project-item-year">2024</div>
         </div>
@@ -683,12 +651,16 @@
           data-title="10 Sense"
           data-type="Writing"
           data-year="2023"
-          data-desc="Screenplay about a steel mill worker escaping into a chaotic 1974 baseball game."
+          data-desc="My first ever screenplay. Why not put it on the internet?
+
+		  A steel mill worker finds himself at the most chaotic baseball game in history.
+		  
+		  This is a homage to my lifelong allegiance to Cleveland sports teams."
           data-image="images/10s.png"
           data-link="pdfs/10 SENSE.pdf">
           <div class="project-item-label">
             <div class="project-item-title"><span>10 Sense</span></div>
-            <div class="project-item-type">Writing</div>
+            <div class="project-item-type">Script (Short)</div>
           </div>
           <div class="project-item-year">2023</div>
         </div>
@@ -697,12 +669,14 @@
           data-title="Infinite Gems"
           data-type="Film"
           data-year="2022"
-          data-desc="Short film where two teens hunt for lost cryptocurrency. Best-in-show at Kiwanis Teen Film Festival."
+          data-desc="A short film inspired by the story of James Howells, a Welsh man who mistakenly threw away a hard drive with a key to over half a billion dollars worth of cryptocurrency.
+		  
+		  Best-in-show at the 2022 Idaho Teen Film Festival."
           data-image="images/fulls/infinitegems.jpg"
           data-link="https://www.youtube.com/watch?v=8ov1Z6fzG-s">
           <div class="project-item-label">
             <div class="project-item-title"><span>Infinite Gems</span></div>
-            <div class="project-item-type">Film</div>
+            <div class="project-item-type">Short Film</div>
           </div>
           <div class="project-item-year">2022</div>
         </div>
@@ -711,12 +685,14 @@
           data-title="Last in the Jar"
           data-type="Film"
           data-year="2022"
-          data-desc="Fake documentary trailer about a man and his last pickle. Winner of the CapED Movie Trailer Contest."
+          data-desc="Who took the last cookie? 
+		  
+		  Winner of the 2022 CapED Movie Trailer Contest."
           data-image="images/fulls/lastin.jpg"
           data-link="https://www.youtube.com/watch?v=6Nsu91DTyMU">
           <div class="project-item-label">
             <div class="project-item-title"><span>Last in the Jar</span></div>
-            <div class="project-item-type">Film</div>
+            <div class="project-item-type">Short Film</div>
           </div>
           <div class="project-item-year">2022</div>
         </div>
@@ -741,7 +717,6 @@
         <div class="contact-panel-title">Contact</div>
         <button class="contact-close-btn" type="button" id="contactClose">Close</button>
       </div>
-      <p>I'll respond to you pretty much instantaneously at all of these.</p>
       <div class="contact-panel-links">
         <div><strong>Email:</strong> <a href="mailto:ovvendoerr@gmail.com">ovvendoerr@gmail.com</a></div>
         <div><strong>LinkedIn:</strong> <a href="https://www.linkedin.com/in/owen-doerr/" target="_blank" rel="noreferrer">/owen-doerr</a></div>
