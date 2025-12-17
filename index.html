@@ -415,23 +415,15 @@
       transform: translateY(18px);
       transition: opacity 900ms ease-out, transform 900ms ease-out;
       will-change: opacity, transform;
+      align-items: flex-start;
+      height: auto;
+      min-height: 0;
+      align-self: flex-start;
     }
+
     #gallery.is-visible {
       opacity: 1;
       transform: translateY(0);
-    }
-
-    .gallery-head {
-      padding-top: 18px;
-      border-top: 1px solid rgba(92, 86, 117, 0.35);
-      display: flex;
-      align-items: baseline;
-      justify-content: space-between;
-      gap: 16px;
-      color: var(--muted);
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.18em;
     }
 
     .gallery-grid {
@@ -441,24 +433,33 @@
       gap: 16px;
     }
 
+    /* UPDATED: no fixed-height crop boxes; images render full/uncropped */
     .g-item {
       border-radius: 18px;
-      border: 1px solid rgba(255,255,255,0.08);
-      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.00);
+      background: rgba(255,255,255,0.0);
       overflow: hidden;
-      box-shadow: 0 24px 60px rgba(0,0,0,0.55);
+      box-shadow: 0 24px 60px rgba(0,0,0,0.0);
       position: relative;
-      min-height: 180px;
       transform: translateZ(0);
     }
+
+    /* Make the whole tile clickable */
+    .g-link {
+      display: block;
+      width: 100%;
+    }
+
+    /* IMPORTANT: show the full image (no object-fit cover, no forced height) */
     .g-item img {
       width: 100%;
-      height: 100%;
-      object-fit: cover;
+      height: auto;
       display: block;
       opacity: 0.95;
-      transform: scale(1.01);
+      transform: none;
     }
+
+    /* keep your subtle sheen */
     .g-item::after {
       content: "";
       position: absolute;
@@ -468,16 +469,18 @@
       opacity: 0.55;
     }
 
-    /* Sizes */
+    .whatever-parent {
+      min-height: 0;
+      height: auto;
+      align-items: flex-start; /* if it's flex */
+    }
+
+    /* Sizes (keep spans, but REMOVE the fixed height classes usage in JS below) */
     .g-span-6 { grid-column: span 6; }
     .g-span-4 { grid-column: span 4; }
     .g-span-3 { grid-column: span 3; }
     .g-span-8 { grid-column: span 8; }
     .g-span-12 { grid-column: span 12; }
-
-    .g-h-sm { height: 220px; }
-    .g-h-md { height: 320px; }
-    .g-h-lg { height: 420px; }
 
     @media (max-width: 960px) {
       .gallery-grid { grid-template-columns: repeat(6, 1fr); }
@@ -486,22 +489,12 @@
       .g-span-4 { grid-column: span 6; }
       .g-span-3 { grid-column: span 3; }
       .g-span-12 { grid-column: span 6; }
-      .g-h-lg { height: 340px; }
-	  .intro-header { gap: 22px; }
     }
 
     @media (max-width: 560px) {
       .gallery-grid { grid-template-columns: repeat(2, 1fr); }
       .g-span-12, .g-span-8, .g-span-6, .g-span-4 { grid-column: span 2; }
       .g-span-3 { grid-column: span 1; }
-      .g-h-sm { height: 190px; }
-      .g-h-md { height: 260px; }
-      .g-h-lg { height: 300px; }
-	  .intro-avatar {
-		margin-left: 0;
-		width: 80px;
-		height: 80px;
-	}
     }
 
     /* CONTACT SHEET */
@@ -589,9 +582,9 @@
               <div class="intro-text">
             <div class="intro-name">owendoerr</div>
             <div class="intro-role">
-              Screenwriter, video editor, game developer, programmer, DJ, cinephile/audiophile, and
+              I am a screenwriter, video editor, game developer, programmer, cinephile/audiophile, DJ, and
               lifelong skier from Boise, Idaho. Based in Los Angeles.
-			  <br><br> This is a home for some things I've made.
+			  <br><br> This is a home for some of the things I've made.
             </div>
 
             <div class="intro-links">
@@ -615,11 +608,26 @@
         </div>
       </div>
 
+      
 	  <div class="project-list" id="projectList">
+      <div class="project-item"
+          data-title="The Fraught"
+          data-type="Pilot"
+          data-year="2025"
+          data-desc="After his long-distance relationship comes to a demoralizing end, a reclusive college freshman begins reinventing himself through the seductive chaos of fraternity life."
+          data-image="images/SkyParty.png"
+          data-link="pdfs/The Fraught (Draft 12-25).pdf">
+          <div class="project-item-label">
+            <div class="project-item-title"><span>The Fraught</span></div>
+            <div class="project-item-type">Pilot</div>
+          </div>
+          <div class="project-item-year">2025</div>
+        </div>
+
         <div class="project-item"
           data-title="Trackgeist"
           data-type="Game"
-          data-year="2024"
+          data-year="2025"
           data-desc="Welcome to Berlin. This is a manifestation of my desire to visit Berghain. 
 		  
 		  A little tiny choose-your-own-adventure narrative mixed with an arrow-keys rythm game."
@@ -629,10 +637,9 @@
             <div class="project-item-title"><span>Trackgesit</span></div>
             <div class="project-item-type">Narrative/Rhythm Game</div>
           </div>
-          <div class="project-item-year">2024</div>
+          <div class="project-item-year">2025</div>
         </div>
 
-      <div class="project-list" id="projectList">
         <div class="project-item"
           data-title="Gardeno"
           data-type="Game"
@@ -872,38 +879,52 @@
     contactSheet.addEventListener("click", (e) => { if (e.target === contactSheet) closeContact(); });
     document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeContact(); });
 
-    // ==============================
-    // COLLAGE GALLERY CONTENT
-    // ==============================
-    const galleryItems = [
-      // Add/remove as many as you want; page scroll extends naturally.
-      { src: "images/thumbs/01.jpg", span: 4, h: "md" },
-      { src: "images/thumbs/02.jpg", span: 8, h: "lg" },
-      { src: "images/theprogram.png", span: 6, h: "md" },
-      { src: "images/rushvideo.png", span: 6, h: "md" },
-      { src: "images/fathere.jpg", span: 4, h: "md" },
-      { src: "images/fulls/infinitegems.jpg", span: 4, h: "md" },
-      { src: "images/fulls/lastin.jpg", span: 4, h: "md" },
-      { src: "images/10s.png", span: 12, h: "sm" },
-    ];
+// ==============================
+// COLLAGE GALLERY CONTENT (UPDATED: full images + clickable links)
+// ==============================
+const galleryItems = [
+  // Add href for each item (where you want it to go)
+  { src: "images/mixcover2.png", span: 6, href: "https://on.soundcloud.com/7GMJhGJ8K5yfvlEvMl"},
+  { src: "images/mixcover.png", span: 6, href: "https://on.soundcloud.com/Y3dEo0TIFXQZKXTlqo"},
+  { src: "images/mixcover3.png", span: 6, href: "https://on.soundcloud.com/awmkzqLJBv0ETNrqKq"},
+  { src: "images/fulls/recessthumb.png", span: 6, href: "https://www.instagram.com/p/C7ov3FWtXve/"},
+  { src: "images/mr ming.png", span: 6},
+  { src: "images/rudy.png", span: 6},
+  { src: "images/fulls/", span: 6},
+  { src: "images/rushvideo.png", span: 6, href: "https://www.instagram.com/p/DFOBS6zS08V/" },
+  { src: "images/fulls/fallshirts.jpg", span: 6},
+  { src: "images/fulls/springshirts.jpg", span: 6},
+  { src: "images/theprogram.png", span: 6, href: "youtube.com/watch?v=QYhyTDKIE9M&feature=youtu.be" },
+];
 
-    const grid = document.getElementById("galleryGrid");
-    function makeItem({ src, span, h }) {
-      const div = document.createElement("div");
-      const spanClass = `g-span-${span || 4}`;
-      const hClass = h === "lg" ? "g-h-lg" : h === "sm" ? "g-h-sm" : "g-h-md";
-      div.className = `g-item ${spanClass} ${hClass}`;
+const grid = document.getElementById("galleryGrid");
 
-      if (src) {
-        const img = document.createElement("img");
-        img.loading = "lazy";
-        img.alt = "";
-        img.src = src;
-        div.appendChild(img);
-      }
-      return div;
-    }
-    if (grid) galleryItems.forEach(item => grid.appendChild(makeItem(item)));
+function makeItem({ src, span, href }) {
+  const div = document.createElement("div");
+  const spanClass = `g-span-${span || 4}`;
+  div.className = `g-item ${spanClass}`;
+
+  if (src) {
+    const link = document.createElement("a");
+    link.className = "g-link";
+    link.href = href || src;           // if you forget href, it falls back to opening the image itself
+    link.target = "_blank";
+    link.rel = "noreferrer";
+
+    const img = document.createElement("img");
+    img.loading = "lazy";
+    img.alt = "";
+    img.src = src;
+
+    link.appendChild(img);
+    div.appendChild(link);
+  }
+
+  return div;
+}
+
+if (grid) galleryItems.forEach(item => grid.appendChild(makeItem(item)));
+
 
     // ==============================
     // STARFIELD BACKGROUND (kept)
@@ -1019,4 +1040,3 @@
   </script>
 </body>
 </html>
-
