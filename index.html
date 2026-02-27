@@ -274,7 +274,6 @@ a:hover{text-decoration:underline}
       <section class="center" aria-live="polite">
         <article class="card" id="card">
           <div class="thumbBox" id="thumbBox"><div class="thumbFallback">thumbnail</div></div>
-          <div class="kicker">Selected</div>
           <h2 class="projectTitle" id="pTitle">—</h2>
           <div class="projectType" id="pType">—</div>
           <p class="projectDesc" id="pDesc">—</p>
@@ -294,7 +293,7 @@ a:hover{text-decoration:underline}
     const PROJECTS = [
     { title: 'The Fraught', type: 'Pilot', year: 2026, desc: 'After his long-distance relationship comes to a demoralizing end, a reclusive college freshman begins reinventing himself through the seductive chaos of frat life.', href: 'pdfs/The Fraught (Draft 12-25).pdf', thumb: 'images/fraught.png' },
     { title: 'Trackgeist', type: 'Narrative/Rhythm Game', year: 2025, desc: 'A narrative rhythm game where momentum, memory, and music collide.', href: 'https://odoerr.itch.io/trackgeist', thumb: 'images/trackgeist.png' },
-    { title: 'Gardeno', type: 'Mobile Game', year: 2024, desc: 'Mobile video game developed in Unity and drawn in Aseprite. Grow plants and unlock new ones! Music mixed by me.', href: 'https://doerrowen.itch.io/gardeno', thumb: 'images/gardeno.png' },
+    { title: 'Gardeno', type: 'Mobile Game', year: 2024, desc: 'Mobile video game developed in Unity and drawn in Aseprite. Grow plants and unlock new ones! Music mixed by me.', href: 'https://doerrowen.itch.io/gardeno', thumb: 'images/gardeno.png', thumbScale: 0.72 },
     { title: '10 Sense', type: 'Script (Short)', year: 2023, desc: 'Short film following a steel mill worker who attends an out-of-control 1974 Cleveland baseball game. My first screenwriting piece!', href: 'pdfs/10 SENSE.pdf', thumb: 'images/10sense.png' },
     { title: 'Infinite Gems', type: 'Short Film', year: 2022, desc: 'A short film following a boy and his friend trying to find lost crypto currency. Best-in-show winner of the 2022 Kiwanis Teen Film Festival.', href: 'https://www.youtube.com/watch?v=8ov1Z6fzG-s', thumb: 'images/infinitegems.png' },
     { title: 'Last in the Jar', type: 'Short Film', year: 2022, desc: 'A trailer for a fake Netflix-style documentary. 2022 CapED Movie Trailer Contest winner.', href: 'https://www.youtube.com/watch?v=6Nsu91DTyMU', thumb: 'images/lastinthejar.png' },
@@ -359,6 +358,7 @@ a:hover{text-decoration:underline}
       img.onerror = () => {
         card.thumbBox.innerHTML = '<div class="thumbFallback">thumbnail</div>';
       };
+      if (p.thumbScale) img.style.transform = `scale(${p.thumbScale})`;
       card.thumbBox.appendChild(img);
     } else {
       card.thumbBox.innerHTML = '<div class="thumbFallback">thumbnail</div>';
