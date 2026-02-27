@@ -1,0 +1,573 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>owendoerr</title>
+  <meta name="description" content="Owen Doerr — screenwriter, editor, game dev, programmer, DJ." />
+
+  <!-- Original font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Original star system dependency -->
+  <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
+
+  <style>
+
+:root{
+  --text:#f5f2ea;
+  --muted:rgba(245,242,234,.68);
+  --dim:rgba(245,242,234,.38);
+  --line:rgba(245,242,234,.16);
+  --maxw: 980px;
+}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  font-family:"Space Grotesk", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background:#000;
+  color:var(--text);
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+a{color:inherit; text-decoration:none}
+a:hover{text-decoration:underline}
+
+#bg3d{
+  position:fixed;
+  inset:0;
+  z-index:-2;
+  pointer-events:none;
+  overflow:hidden;
+}
+
+.orbitWrap{
+  position:fixed;
+  inset:0;
+  z-index:0;
+  pointer-events:none;
+}
+.orbit{
+  position:absolute;
+  inset:0;
+}
+.pill{
+  position:absolute;
+  transform:translate(-50%,-50%);
+  white-space:nowrap;
+  font-size:14px;
+  letter-spacing:.02em;
+  color:var(--dim);
+  will-change:transform, opacity, left, top;
+  pointer-events:none;
+}
+.pill .pillTitle{color:var(--text)}
+.pill .pillMeta{color:var(--dim); font-size:12px; letter-spacing:.14em; text-transform:uppercase}
+.pill .pillYear{margin-left:12px; color:var(--dim)}
+.pill.is-front{
+  color:var(--text);
+  font-size:16px;
+}
+.pill.is-front .pillMeta{color:var(--muted)}
+/* force the front label to sit visually above the center card content */
+.pill.is-front{filter:none !important}
+
+.stage{
+  position:relative;
+  z-index:2; /* above orbit */
+  min-height: var(--scrollH, 200vh);
+  padding: 120px 24px 120px;
+}
+.shell{
+  max-width: var(--maxw);
+  margin:0 auto;
+}
+
+.header{
+  --hx: 0px;
+  --hy: 0px;
+  position:fixed;
+  top:18px;
+  left:50%;
+  transform:translateX(-50%) translate(var(--hx), var(--hy));
+  width:min(var(--maxw), calc(100% - 48px));
+  display:flex;
+  align-items:center;
+  gap:14px;
+  z-index:3;
+  pointer-events:auto;
+}
+.intro-avatar{
+  width:42px;
+  height:42px;
+  display:grid;
+  place-items:center;
+  overflow:hidden;
+}
+.intro-avatar img{
+  width:42px;
+  height:42px;
+  object-fit:cover;
+  display:block;
+  transform: translate3d(var(--pfpX, 0px), var(--pfpY, 0px), 0) scale(var(--pfpS, 1));
+  will-change: transform;
+}
+.hgroup{min-width:0}
+.name{
+  margin:0;
+  font-size:22px;
+  letter-spacing:-.02em;
+  line-height:1.1;
+}
+.tagline{
+  margin:4px 0 6px;
+  font-size:14px;
+  color:var(--muted);
+}
+.links{
+  display:flex;
+  gap:14px;
+  flex-wrap:wrap;
+  font-size:13px;
+  color:var(--dim);
+}
+.links a{opacity:.9}
+.links a:hover{opacity:1}
+
+.center{
+  position:fixed;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:2;
+  pointer-events:none;
+}
+.card{
+  width:min(640px, 100%);
+  padding:0;
+  background:transparent;
+  border:none;
+  border-radius:0;
+  box-shadow:none;
+  pointer-events:auto;
+  transform: translateY(22px);
+}
+.thumbBox{
+  width:96px;
+  height:96px;
+  margin:0 auto 18px;
+  border:1px solid var(--line);
+  border-radius:0;
+  overflow:hidden;
+  display:grid;
+  place-items:center;
+}
+.thumbBox img{width:100%; height:100%; object-fit:cover; display:block}
+.thumbFallback{font-size:12px; color:var(--dim); text-transform:uppercase; letter-spacing:.16em}
+
+.kicker{
+  font-size:12px;
+  color:var(--dim);
+  letter-spacing:.18em;
+  text-transform:uppercase;
+  margin:0 0 10px;
+  text-align:center;
+}
+.projectTitle{
+  margin:0;
+  font-size:44px;
+  letter-spacing:-.03em;
+  line-height:1.02;
+  text-align:center;
+}
+.projectType{
+  margin:8px 0 0;
+  font-size:16px;
+  color:var(--muted);
+  text-align:center;
+}
+.projectDesc{
+  margin:18px auto 0;
+  max-width: 56ch;
+  font-size:18px;
+  line-height:1.55;
+  color:var(--text);
+  text-align:center;
+}
+.cardFooter{
+  margin-top:22px;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:18px;
+}
+.openBtn{
+  display:inline-block;
+  padding:10px 14px;
+  border:1px solid var(--line);
+  border-radius:0;
+  font-size:14px;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+.openBtn:hover{text-decoration:none; border-color:rgba(245,242,234,.35)}
+.yearTag{
+  font-size:14px;
+  color:var(--dim);
+  letter-spacing:.12em;
+}
+
+@media (max-width:520px){  .projectTitle{font-size:34px}
+  .projectDesc{font-size:16px}
+  .header{top:14px}
+  .links{gap:10px}
+}
+
+
+/* --- iteration10 header centering --- */
+.header{
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  text-align:center;
+}
+.hgroup{display:flex; flex-direction:column; align-items:center; text-align:center}
+.links{justify-content:center}
+.links a{margin:0 10px}
+
+</style>
+</head>
+<body>
+  <div id="bg3d"></div>
+
+  <div class="orbitWrap" aria-hidden="true">
+    <div id="orbit" class="orbit"></div>
+  </div>
+
+  <main class="stage">
+    <div class="shell">
+      <section class="header">
+        <div class="intro-avatar" aria-label="Portrait">
+          <!-- replace src with your real profile photo path -->
+          <img src="images/avatar.jpg" alt="" onerror="this.remove(); this.parentElement.textContent='Owen\nDoerr'" />
+        </div>
+        <div class="hgroup">
+          <h1 class="name">owendoerr</h1>
+          <p class="tagline">Screenwriter, editor, game dev, programmer, DJ, skier. Boise → Los Angeles.</p>
+          <nav class="links" aria-label="Links">
+            <a href="mailto:ovvendoerr@gmail.com">Email</a>
+            <a href="https://www.linkedin.com/in/owen-doerr/">LinkedIn</a>
+            <a href="https://soundcloud.com/ododee">SoundCloud</a>
+            <a href="https://odoerr.itch.io/">itch.io</a>
+            <a href="https://letterboxd.com/owendoerr/" data-link="letterboxd">Letterboxd</a>
+            <a href="https://www.youtube.com/@owendoerr">YouTube</a>
+          </nav>
+        </div>
+      </section>
+
+      <section class="center" aria-live="polite">
+        <article class="card" id="card">
+          <div class="thumbBox" id="thumbBox"><div class="thumbFallback">thumbnail</div></div>
+          <div class="kicker">Selected</div>
+          <h2 class="projectTitle" id="pTitle">—</h2>
+          <div class="projectType" id="pType">—</div>
+          <p class="projectDesc" id="pDesc">—</p>
+          <div class="cardFooter">
+            <a class="openBtn" id="openBtn" href="#" target="_blank" rel="noreferrer">Open ↗</a>
+            <div class="yearTag" id="pYear">—</div>
+          </div>
+        </article>
+      </section>
+    </div>
+  </main>
+
+<script>
+  // ==============================
+  // Data (add projects here)
+  // ==============================
+    const PROJECTS = [
+    { title: 'The Fraught', type: 'Pilot', year: 0, desc: 'After his long-distance relationship comes to a demoralizing end, a reclusive college freshman begins reinventing himself through the seductive chaos of frat life.', href: 'pdfs/The Fraught (Draft 12-25).pdf', thumb: 'images/SkyParty.png' },
+    { title: 'Trackgeist', type: 'Narrative/Rhythm Game', year: 0, desc: 'A narrative rhythm game where momentum, memory, and music collide.', href: 'https://odoerr.itch.io/trackgeist', thumb: 'images/CarlaAnim.gif' },
+    { title: 'Gardeno', type: 'Mobile Game', year: 2024, desc: 'Mobile video game developed in Unity and drawn in Aseprite. Grow plants and unlock new ones! Music mixed by me.', href: 'https://doerrowen.itch.io/gardeno', thumb: 'images/thumbs/02.jpg' },
+    { title: '10 Sense', type: 'Script (Short)', year: 2023, desc: 'Short film following a steel mill worker who attends an out-of-control 1974 Cleveland baseball game. My first screenwriting piece!', href: 'pdfs/10 SENSE.pdf', thumb: 'images/10s.png' },
+    { title: 'Infinite Gems', type: 'Short Film', year: 2022, desc: 'A short film following a boy and his friend trying to find lost crypto currency. Best-in-show winner of the 2022 Kiwanis Teen Film Festival.', href: 'https://www.youtube.com/watch?v=8ov1Z6fzG-s', thumb: 'images/fulls/infinitegems.jpg' },
+    { title: 'Last in the Jar', type: 'Short Film', year: 2022, desc: 'A trailer for a fake Netflix-style documentary. 2022 CapED Movie Trailer Contest winner.', href: 'https://www.youtube.com/watch?v=6Nsu91DTyMU', thumb: 'images/fulls/lastin.jpg' },
+  ];
+
+  // ==============================
+  // Orbit + selection
+  // One scroll system: scroll position maps to rotation and selected project
+  // ==============================
+  const orbitEl = document.getElementById('orbit');
+  const card = {
+    title: document.getElementById('pTitle'),
+    type: document.getElementById('pType'),
+    desc: document.getElementById('pDesc'),
+    year: document.getElementById('pYear'),
+    open: document.getElementById('openBtn'),
+    thumbBox: document.getElementById('thumbBox'),
+  };
+
+  const pills = [];
+  const N = PROJECTS.length;
+  const TAU = Math.PI * 2;
+  const stepAngle = TAU / N;
+
+  function mod(n, m){ return ((n % m) + m) % m; }
+
+  function pillHTML(p){
+    return `
+      <div class="title">${p.title}</div>
+      <div class="meta">${p.type}</div>
+      <div class="year">${p.year}</div>
+    `;
+  }
+
+  function buildOrbit(){
+    orbitEl.innerHTML = '';
+    pills.length = 0;
+    for (let i=0;i<N;i++){
+      const d = document.createElement('div');
+      d.className = 'pill';
+      d.innerHTML = pillHTML(PROJECTS[i]);
+      orbitEl.appendChild(d);
+      pills.push(d);
+    }
+  }
+
+  function setCard(i){
+    const p = PROJECTS[i];
+    card.title.textContent = p.title;
+    card.type.textContent = p.type;
+    card.desc.textContent = p.desc;
+    card.year.textContent = p.year ? String(p.year) : '';
+    card.open.href = p.href || '#';
+
+    // thumb
+    card.thumbBox.innerHTML = '';
+    if (p.thumb){
+      const img = document.createElement('img');
+      img.alt = '';
+      img.loading = 'lazy';
+      img.src = p.thumb;
+      img.onerror = () => {
+        card.thumbBox.innerHTML = '<div class="thumbFallback">thumbnail</div>';
+      };
+      card.thumbBox.appendChild(img);
+    } else {
+      card.thumbBox.innerHTML = '<div class="thumbFallback">thumbnail</div>';
+    }
+  }
+
+  // Scroll runway sizing: exactly one "lap" through all projects.
+  const STEP_PX = 420; // scroll distance per project
+  function updateScrollRunway(){
+    const total = Math.max(1, (N-1) * STEP_PX);
+    // +1 viewport so sticky center works comfortably
+    const h = total + window.innerHeight + 240;
+    document.documentElement.style.setProperty('--scrollH', h + 'px');
+    window.__orbitTotal = total;
+  }
+
+  function layoutOrbit(rotation, selectedIndex){
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+
+    // Full-width orbit, pushed outward so it never cuts through the center card.
+    const cx = vw * 0.50;
+    const cy = vh * 0.52;
+
+    const rx = Math.max(560, vw * 0.49);
+    const ry = Math.max(300, vh * 0.40);
+
+    // Keep pills behind the card; also scale/opacity by depth.
+    for (let i=0;i<N;i++){
+      const a = i * stepAngle + rotation;
+      const x = cx + rx * Math.cos(a);
+      const y = cy + ry * Math.sin(a);
+
+      // depth cue: front at angle 0 (right side). map cos(a) from [-1,1] -> [0,1]
+      const depth = (Math.sin(a) + 1) * 0.5; // bottom is front
+      const scale = 0.86 + depth * 0.22;
+
+      pills[i].style.left = x + 'px';
+      pills[i].style.top = y + 'px';
+      pills[i].style.transform = `translate(-50%,-50%) scale(${scale.toFixed(3)})`;
+            pills[i].style.opacity = (0.06 + depth * 0.88).toFixed(3);
+      pills[i].style.zIndex = String(Math.round(depth * 100));
+
+      if (i === selectedIndex) { pills[i].classList.add('is-front'); pills[i].style.opacity = '1'; pills[i].style.zIndex = '200'; }
+      else pills[i].classList.remove('is-front');
+
+      // z-order via translateZ illusion (DOM order still matters; keep stable)
+            pills[i].style.filter = 'none';
+    }
+  }
+
+  let lastSelected = 0;
+
+  function render(){
+    const total = window.__orbitTotal || 1;
+    const y = Math.min(total, Math.max(0, window.scrollY));
+
+    // Scroll progress for starfield drift (0..1)
+    window.scrollProgress = total ? (y / total) : 0;
+
+    const t = y / STEP_PX; // 0..N-1-ish
+    const sel = mod(Math.round(t), N);
+
+    // Rotation is directly tied to scroll so selection and ring never desync.
+    // When t is an integer k, selected index k lands at angle 0.
+    const rotation = (Math.PI/2) - (t * stepAngle);
+
+    if (sel !== lastSelected){
+      setCard(sel);
+      lastSelected = sel;
+      document.body.classList.toggle('project-active', true);
+    }
+
+    layoutOrbit(rotation, sel);
+
+    requestAnimationFrame(render);
+  }
+
+  // ==============================
+  // Original starfield background (from your original index.html)
+  // ==============================
+  function isIOS(){
+    return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  }
+
+  (function initStarfield(){
+    if (!window.THREE) return;
+    const bgContainer = document.getElementById('bg3d');
+    if (!bgContainer) return;
+
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.FogExp2(0x050509, 0.02);
+
+    const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+    camera.position.set(0, 0, 8);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setClearColor(0x050509, 1);
+    bgContainer.appendChild(renderer.domElement);
+
+    const starField = new THREE.Group();
+    scene.add(starField);
+
+    function createStarLayer(count, radius, colorHex, size) {
+      const geom = new THREE.BufferGeometry();
+      const positions = new Float32Array(count * 3);
+      for (let i = 0; i < count; i++) {
+        const r = radius * (0.4 + Math.random() * 0.6);
+        const theta = Math.random() * Math.PI * 2;
+        const phi = Math.acos((Math.random() * 2) - 1);
+        positions[i * 3 + 0] = r * Math.sin(phi) * Math.cos(theta);
+        positions[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
+        positions[i * 3 + 2] = r * Math.cos(phi);
+      }
+      geom.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      const mat = new THREE.PointsMaterial({
+        color: colorHex,
+        size,
+        sizeAttenuation: true,
+        transparent: true,
+        opacity: 0.9
+      });
+      return new THREE.Points(geom, mat);
+    }
+
+    const starsNear = createStarLayer(900, 10, 0xf5f2ea, 0.035);
+    const starsMid  = createStarLayer(1200, 16, 0xa9b5d8, 0.028);
+    const starsFar  = createStarLayer(1600, 24, 0x303b55, 0.022);
+
+    starField.add(starsFar);
+    starField.add(starsMid);
+    starField.add(starsNear);
+
+    const ambient = new THREE.AmbientLight(0x202030, 0.4);
+    scene.add(ambient);
+
+    const dimLight = new THREE.PointLight(0x2b3c5f, 0.25, 0, 2);
+    dimLight.position.set(-6, 5, -4);
+    scene.add(dimLight);
+
+    let mouseX = 0, mouseY = 0;
+    document.addEventListener('mousemove', (e) => {
+      mouseX = (e.clientX / window.innerWidth) * 2 - 1;
+      mouseY = (e.clientY / window.innerHeight) * 2 - 1;
+    });
+
+    function onResize() {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      updateScrollRunway();
+    }
+    window.addEventListener('resize', onResize);
+
+    function tick() {
+      requestAnimationFrame(tick);
+
+      const hoverBoost = document.body.classList.contains('project-active') ? 1.8 : 1.0;
+      starField.rotation.y += 0.0008 * hoverBoost;
+      starField.rotation.x += 0.0004 * hoverBoost;
+
+      const targetRotY = mouseX * 0.2;
+      const targetRotX = -mouseY * 0.12;
+
+      starField.rotation.y += (targetRotY - starField.rotation.y) * 0.04;
+      starField.rotation.x += (targetRotX - starField.rotation.x) * 0.04;
+
+      const baseZ = 8;
+      const zoomAmount = isIOS() ? 1.8 : 2.8;
+      const sp = (typeof window.scrollProgress === 'number') ? window.scrollProgress : 0;
+      const targetZ = baseZ - sp * zoomAmount;
+
+      camera.position.x += (mouseX * 0.5 - camera.position.x) * 0.03;
+      camera.position.y += (-mouseY * 0.3 - camera.position.y) * 0.03;
+      camera.position.z += (targetZ - camera.position.z) * 0.05;
+
+      const avatar = document.querySelector('.intro-avatar');
+      if (avatar) {
+        const pfpX = mouseX * 6;
+        const pfpY = -mouseY * 4;
+        const pfpS = document.body.classList.contains('project-active') ? 0.985 : 1.0;
+        avatar.style.setProperty('--pfpX', pfpX.toFixed(2) + 'px');
+        avatar.style.setProperty('--pfpY', pfpY.toFixed(2) + 'px');
+        avatar.style.setProperty('--pfpS', pfpS.toString());
+      }
+
+      const head = document.querySelector('.header');
+      if (head) {
+        // subtle drift like the original: stays pinned but "breathes" with the mouse
+        head.style.setProperty('--hx', (mouseX * 10).toFixed(2) + 'px');
+        head.style.setProperty('--hy', (mouseY * 6).toFixed(2) + 'px');
+      }
+
+      camera.lookAt(new THREE.Vector3(0, 0, 0));
+      renderer.render(scene, camera);
+    }
+
+    tick();
+  })();
+
+  // Boot
+  buildOrbit();
+  updateScrollRunway();
+  setCard(0);
+  lastSelected = 0;
+  document.body.classList.add('project-active');
+  requestAnimationFrame(render);
+</script>
+</body>
+</html>
