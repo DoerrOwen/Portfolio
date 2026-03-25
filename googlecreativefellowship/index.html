@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries">const maskCanvas = document.getElementById('maskCanvas');
+        const mctx = maskCanvas.getContext('2d', { alpha: true });
+        
+        const pixelScale = 8; 
+        let mWidth, mHeight;
+        let animationComplete = false;
+
+        function initMaskCanvas() {
+            maskCanvas.width = window.innerWidth / pixelScale;
+            maskCanvas.height = window.innerHeight / pixelScale;
+            mWidth = maskCanvas.width;
+            mHeight = maskCanvas.height;
+
+            mctx.fillStyle = 'white';
+            mctx.fillRect(0, 0, mWidth, mHeight);
+        }
+
+        function erase(clientX, clientY) {
+            if (!animationComplete) return; 
+
+            const rect = maskCanvas.getBoundingClientRect();
+            const x = (clientX - rect.left) / pixelScale;
+            const y = (clientY - rect.top) / pixelScale;
+            
+            mctx.globalCompositeOperation = 'destination-out';
+            mctx.fillStyle = 'black';
+            
+            const radius = 16; 
+            for (let i = -radius; i <= radius; i++) {
+                for (let j = -radius; j <= radius; j++) {
+                    if (Math.sqrt(i*i + j*j) <= radius) {
+                        mctx.fillRect(Math.floor(x + i), Math.floor(y + j), 1, 1);
+                    }
+                }
+            }
+        }
+
+        window.addEventListener('mousemove', (e) => erase(e.clientX, e.clientY));
+        window.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            erase(e.touches[0].clientX, e.touches[0].clientY);
+        }, { passive: false });
+
+        function positionScatteredText() {
+            const words = Array.from(document.querySelectorAll('.hidden-word'));
+            const heroText = document.getElementById('heroText');
+            const summaryText = document.getElementById('summaryText');
+            
+            const heroRect = heroText.getBoundingClientRect();
+            const summaryRect = summaryText.getBoundingClientRect();
+            
+            const contentBox = {
+                top: heroRect.top - 40,
+                bottom: summaryRect.bottom + 40,
+                left: Math.min(heroRect.left, summaryRect.left) - 40,
+                right: Math.max(heroRect.right, summaryRect.right) + 40
+            };
+
+            const W = window.innerWidth;
+            const H = window.innerHeight;
+
+            // Strictly increasing X values for left-to-right reading order
+            const grid = [
+                { x: 0.10 * W, y: 0.20 * H }, // Google
+                { x: 0.25 * W, y: 0.50 * H }, // needs
+                { x: 0.40 * W, y: 0.15 * H }, // a
+                { x: 0.55 * W, y: 0.80 * H }, // curious
+                { x: 0.70 * W, y: 0.40 * H }, // mind
+                { x: 0.85 * W, y: 0.15 * H }, // like
+                { x: 0.95 * W, y: 0.85 * H }  // mine
+            ];
+
+            words.forEach((word, index) => {
+                let targetX = grid[index].x;
+                let targetY = grid[index].y;
+
+                if (targetX > contentBox.left && targetX < contentBox.right &&
+                    targetY > contentBox.top && targetY < contentBox.bottom) {
+                    if (targetY < H/2) targetY = contentBox.top - 60;
+                    else targetY = contentBox.bottom + 60;
+                }
+
+                word.style.left = `${targetX}px`;
+                word.style.top = `${targetY}px`;
+                word.style.transform = `translate(-50%, -50%)`;
+            });
+        }
+
+        async function initHeroAnimation() {
+            const heroText = document.getElementById('heroText');
+            const summaryText = document.getElementById('summaryText');
+            const container = document.getElementById('heroIntroContainer');
+            const samplingCanvas = document.getElementById('samplingCanvas');
+            const sctx = samplingCanvas.getContext('2d');
+
+            await document.fonts.ready;
+
+            const rect = heroText.getBoundingClientRect();
+            samplingCanvas.width = rect.width;
+            samplingCanvas.height = rect.height;
+
+            sctx.font = window.getComputedStyle(heroText).font;
+            sctx.fillStyle = 'black';
+            sctx.textAlign = 'center';
+            sctx.textBaseline = 'middle';
+            sctx.fillText('Owen Doerr', rect.width / 2, rect.height / 2);
+
+            const imageData = sctx.getImageData(0, 0, rect.width, rect.height).data;
+
+            function getBlocksForResolution(step) {
+                const points = [];
+                for (let y = 0; y < rect.height; y += step) {
+                    for (let x = 0; x < rect.width; x += step) {
+                        const alpha = imageData[((Math.floor(y) * rect.width) + Math.floor(x)) * 4 + 3];
+                        if (alpha > 80) {
+                            points.push({
+                                x: rect.left + x,
+                                y: rect.top + y,
+                                size: step
+                            });
+                        }
+                    }
+                }
+                return points;
+            }
+
+            const resolutions = [250, 150, 80, 40, 20, 10, 5, 2];
+            let currentBlockElements = [];
+
+            function renderWave(resIndex) {
+                currentBlockElements.forEach(el => el.remove());
+                currentBlockElements = [];
+
+                const points = getBlocksForResolution(resolutions[resIndex]);
+                points.forEach(p => {
+                    const el = document.createElement('div');
+                    el.className = 'pixel-block';
+                    el.style.width = `${p.size}px`;
+                    el.style.height = `${p.size}px`;
+                    
+                    const jitter = (resolutions[resIndex] / 4);
+                    const jX = (Math.random() * jitter * 2) - jitter;
+                    const jY = (Math.random() * jitter * 2) - jitter;
+
+                    el.style.left = `${p.x + jX}px`;
+                    el.style.top = `${p.y + jY}px`;
+                    container.appendChild(el);
+                    currentBlockElements.push(el);
+                });
+            }
+
+            let currentWave = 0;
+            const totalDuration = 1500; 
+            const waveInterval = totalDuration / resolutions.length;
+
+            const interval = setInterval(() => {
+                if (currentWave < resolutions.length) {
+                    renderWave(currentWave);
+                    currentWave++;
+                } else { 
+                    clearInterval(interval);
+                    heroText.classList.add('visible');
+                    
+                    setTimeout(() => {
+                        summaryText.classList.add('visible');
+                    }, 400);
+                    
+                    container.style.transition = 'opacity 0.2s ease';
+                    container.style.opacity = '0';
+                    setTimeout(() => {
+                        container.remove();
+                        animationComplete = true; 
+                    }, 200);
+                }
+            }, waveInterval);
+            
+            renderWave(0);
+            currentWave = 1;
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            initMaskCanvas();
+            setTimeout(() => {
+                positionScatteredText();
+                initHeroAnimation();
+            }, 100);
+        });
+
+        window.addEventListener('resize', () => {
+            initMaskCanvas();
+            positionScatteredText();
+        });</script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&amp;family=Inter:wght@400;500&amp;family=Space+Grotesk:wght@400;700&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        @import url('https://fonts.googleapis.com/css2?family=Google+Sans+Mono:wght@400&display=swap');
+        
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #fcf9f8;
+        }
+
+        .google-conic {
+            background: conic-gradient(from 218deg at 30% 54.12%, #13a1d7 107.85deg, #ed1818 180.06deg, #ffb700 273.15deg, #00b213 359.67deg);
+            background-blend-mode: screen;
+        }
+
+        .pixel-canvas {
+            image-rendering: pixelated;
+            cursor: crosshair;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        .hidden-word {
+            font-family: 'Google Sans Mono', monospace;
+            position: absolute;
+            z-index: 5;
+            pointer-events: none;
+            user-select: none;
+            color: rgba(28, 27, 27, 0.9);
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+
+        .hero-title {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-weight: 800;
+            letter-spacing: -0.04em;
+            line-height: 0.9;
+        }
+
+        /* Animation specific styles */
+        #heroIntroContainer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: white;
+            z-index: 200; 
+            pointer-events: none;
+        }
+
+        .pixel-block {
+            position: absolute;
+            background: black;
+            will-change: transform, top, left, width, height;
+        }
+
+        .final-hero-text {
+            opacity: 0;
+            transition: opacity 0.1s ease;
+        }
+
+        .final-hero-text.visible {
+            opacity: 1;
+        }
+
+        .summary-text {
+            opacity: 0;
+            transition: opacity 0.8s ease;
+        }
+
+        .summary-text.visible {
+            opacity: 1;
+        }
+
+        #samplingCanvas {
+            display: none;
+        }
+
+        /* Z-indexing layers */
+        .z-bg { z-index: 0; }
+        .z-hidden-text { z-index: 5; }
+        .z-mask { z-index: 10; } 
+        .z-hero-content { z-index: 130; } /* Top layer, above mask */
+        .z-top-header { z-index: 140; } /* Highest layer */
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              colors: {
+                "background": "#fcf9f8",
+                "on-background": "#1c1b1b",
+              },
+              fontFamily: {
+                "headline": ["Plus Jakarta Sans"],
+                "body": ["Inter"],
+                "label": ["Space Grotesk"]
+              },
+              borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+            },
+          },
+        }
+    </script>
+</head>
+<body class="bg-background text-on-background antialiased">
+<!-- Background Layer: Conic Gradient (Z: 0) -->
+<div class="absolute inset-0 google-conic z-bg"></div>
+<!-- Hidden Messages Layer (Z: 5) -->
+<div id="scatteredTextContainer">
+<div class="hidden-word" data-word="Google">Google</div>
+<div class="hidden-word" data-word="needs">needs</div>
+<div class="hidden-word" data-word="a">a</div>
+<div class="hidden-word" data-word="curious">curious</div>
+<div class="hidden-word" data-word="mind">mind</div>
+<div class="hidden-word" data-word="like">like</div>
+<div class="hidden-word" data-word="mine">mine</div>
+</div>
+<!-- Top Bar Layer (Z: 140) -->
+<header class="w-full top-0 left-0 z-[210] fixed pointer-events-none">
+<nav class="flex justify-between items-center px-8 py-6 max-w-[1440px] mx-auto bg-transparent relative z-[250]">
+<div class="text-2xl font-bold text-black tracking-tighter font-headline pointer-events-auto relative px-3 py-1 hover:bg-white transition-colors duration-200 cursor-pointer">
+                Creative Fellowship
+            </div>
+<div><a class="pointer-events-auto flex items-center gap-2 px-4 py-2 text-black hover:bg-white transition-colors duration-200 font-headline text-sm font-bold uppercase tracking-widest relative" href="https://owendoerr.com">OWENDOERR.COM <span class="material-symbols-outlined text-sm">arrow_outward</span></a></div>
+</nav>
+</header>
+<!-- Interactive Mask Layer (Z: 10) -->
+<canvas class="pixel-canvas absolute inset-0 z-mask pointer-events-auto" id="maskCanvas"></canvas>
+<main class="relative h-screen w-screen overflow-hidden">
+<!-- Foreground Content Layer: (Z: 130) -->
+<div class="relative z-hero-content h-full flex flex-col items-center justify-center px-6 text-center max-w-5xl mx-auto pointer-events-none">
+<div class="relative mb-8 w-full flex justify-center items-center h-auto">
+<h1 class="final-hero-text hero-title text-7xl md:text-[120px] text-black tracking-tighter leading-none pointer-events-auto" id="heroText">
+                    Owen Doerr
+                </h1>
+</div>
+<p class="summary-text font-body text-xl md:text-2xl text-black font-bold max-w-3xl leading-relaxed pointer-events-auto" id="summaryText">
+                A 22-year-old screenwriter, programmer, designer, and storyteller who used his curious mind to vibe-design a replica of the Creative Fellowship landing page using Google Stitch.
+            </p>
+</div>
+</main>
+<!-- Intro Animation container (Z: 200) -->
+<div id="heroIntroContainer"></div>
+<canvas id="samplingCanvas"></canvas>
+<script>const maskCanvas = document.getElementById('maskCanvas');
+        const mctx = maskCanvas.getContext('2d', { alpha: true });
+        
+        const pixelScale = 8; 
+        let mWidth, mHeight;
+        let animationComplete = false;
+
+        function initMaskCanvas() {
+            maskCanvas.width = window.innerWidth / pixelScale;
+            maskCanvas.height = window.innerHeight / pixelScale;
+            mWidth = maskCanvas.width;
+            mHeight = maskCanvas.height;
+
+            mctx.fillStyle = 'white';
+            mctx.fillRect(0, 0, mWidth, mHeight);
+        }
+
+        function erase(clientX, clientY) {
+            if (!animationComplete) return; 
+
+            const rect = maskCanvas.getBoundingClientRect();
+            const x = (clientX - rect.left) / pixelScale;
+            const y = (clientY - rect.top) / pixelScale;
+            
+            mctx.globalCompositeOperation = 'destination-out';
+            mctx.fillStyle = 'black';
+            
+            const radius = 16; 
+            for (let i = -radius; i <= radius; i++) {
+                for (let j = -radius; j <= radius; j++) {
+                    if (Math.sqrt(i*i + j*j) <= radius) {
+                        mctx.fillRect(Math.floor(x + i), Math.floor(y + j), 1, 1);
+                    }
+                }
+            }
+        }
+
+        window.addEventListener('mousemove', (e) => erase(e.clientX, e.clientY));
+        window.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            erase(e.touches[0].clientX, e.touches[0].clientY);
+        }, { passive: false });
+
+        function positionScatteredText() {
+            const words = Array.from(document.querySelectorAll('.hidden-word'));
+            const heroText = document.getElementById('heroText');
+            const summaryText = document.getElementById('summaryText');
+            
+            const heroRect = heroText.getBoundingClientRect();
+            const summaryRect = summaryText.getBoundingClientRect();
+            
+            const contentBox = {
+                top: heroRect.top - 40,
+                bottom: summaryRect.bottom + 40,
+                left: Math.min(heroRect.left, summaryRect.left) - 40,
+                right: Math.max(heroRect.right, summaryRect.right) + 40
+            };
+
+            const W = window.innerWidth;
+            const H = window.innerHeight;
+
+            // Strictly increasing X values for left-to-right reading order
+            const grid = [
+                { x: 0.10 * W, y: 0.20 * H }, // Google
+                { x: 0.25 * W, y: 0.50 * H }, // needs
+                { x: 0.40 * W, y: 0.15 * H }, // a
+                { x: 0.55 * W, y: 0.80 * H }, // curious
+                { x: 0.70 * W, y: 0.40 * H }, // mind
+                { x: 0.85 * W, y: 0.15 * H }, // like
+                { x: 0.95 * W, y: 0.85 * H }  // mine
+            ];
+
+            words.forEach((word, index) => {
+                let targetX = grid[index].x;
+                let targetY = grid[index].y;
+
+                if (targetX > contentBox.left && targetX < contentBox.right &&
+                    targetY > contentBox.top && targetY < contentBox.bottom) {
+                    if (targetY < H/2) targetY = contentBox.top - 60;
+                    else targetY = contentBox.bottom + 60;
+                }
+
+                word.style.left = `${targetX}px`;
+                word.style.top = `${targetY}px`;
+                word.style.transform = `translate(-50%, -50%)`;
+            });
+        }
+
+        async function initHeroAnimation() {
+            const heroText = document.getElementById('heroText');
+            const summaryText = document.getElementById('summaryText');
+            const container = document.getElementById('heroIntroContainer');
+            const samplingCanvas = document.getElementById('samplingCanvas');
+            const sctx = samplingCanvas.getContext('2d');
+
+            await document.fonts.ready;
+
+            const rect = heroText.getBoundingClientRect();
+            samplingCanvas.width = rect.width;
+            samplingCanvas.height = rect.height;
+
+            sctx.font = window.getComputedStyle(heroText).font;
+            sctx.fillStyle = 'black';
+            sctx.textAlign = 'center';
+            sctx.textBaseline = 'middle';
+            sctx.fillText('Owen Doerr', rect.width / 2, rect.height / 2);
+
+            const imageData = sctx.getImageData(0, 0, rect.width, rect.height).data;
+
+            function getBlocksForResolution(step) {
+                const points = [];
+                for (let y = 0; y < rect.height; y += step) {
+                    for (let x = 0; x < rect.width; x += step) {
+                        const alpha = imageData[((Math.floor(y) * rect.width) + Math.floor(x)) * 4 + 3];
+                        if (alpha > 80) {
+                            points.push({
+                                x: rect.left + x,
+                                y: rect.top + y,
+                                size: step
+                            });
+                        }
+                    }
+                }
+                return points;
+            }
+
+            const resolutions = [250, 150, 80, 40, 20, 10, 5, 2];
+            let currentBlockElements = [];
+
+            function renderWave(resIndex) {
+                currentBlockElements.forEach(el => el.remove());
+                currentBlockElements = [];
+
+                const points = getBlocksForResolution(resolutions[resIndex]);
+                points.forEach(p => {
+                    const el = document.createElement('div');
+                    el.className = 'pixel-block';
+                    el.style.width = `${p.size}px`;
+                    el.style.height = `${p.size}px`;
+                    
+                    const jitter = (resolutions[resIndex] / 4);
+                    const jX = (Math.random() * jitter * 2) - jitter;
+                    const jY = (Math.random() * jitter * 2) - jitter;
+
+                    el.style.left = `${p.x + jX}px`;
+                    el.style.top = `${p.y + jY}px`;
+                    container.appendChild(el);
+                    currentBlockElements.push(el);
+                });
+            }
+
+            let currentWave = 0;
+            const totalDuration = 1500; 
+            const waveInterval = totalDuration / resolutions.length;
+
+            const interval = setInterval(() => {
+                if (currentWave < resolutions.length) {
+                    renderWave(currentWave);
+                    currentWave++;
+                } else { 
+                    clearInterval(interval);
+                    heroText.classList.add('visible');
+                    
+                    setTimeout(() => {
+                        summaryText.classList.add('visible');
+                    }, 400);
+                    
+                    container.style.transition = 'opacity 0.2s ease';
+                    container.style.opacity = '0';
+                    setTimeout(() => {
+                        container.remove();
+                        animationComplete = true; 
+                    }, 200);
+                }
+            }, waveInterval);
+            
+            renderWave(0);
+            currentWave = 1;
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            initMaskCanvas();
+            setTimeout(() => {
+                positionScatteredText();
+                initHeroAnimation();
+            }, 100);
+        });
+
+        window.addEventListener('resize', () => {
+            initMaskCanvas();
+            positionScatteredText();
+        });</script>
+</body></html>
