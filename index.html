@@ -292,6 +292,7 @@ a:hover{text-decoration:underline}
   // Data (add projects here)
   // ==============================
     const PROJECTS = [
+    { title: 'ALTMAN', type: 'AI Film', year: 2026, desc: 'An AI-generated film. Coming soon.', href: 'film.html', thumbVideo: 'BANNER_VIMEO_ID' },
     { title: 'ODIRECTOR', type: 'CLI Tool', year: 2026, desc: 'An AI film production pipeline for Obsidian. Generate stills, animate shots, record dialogue, and manage a complete production from the terminal.', href: 'https://github.com/DoerrOwen/ODIRECTOR', thumb: 'images/odirector.png' },
     { title: 'Screnie', type: 'Web App', year: 2026, desc: 'A screenplay notes analysis tool. AI for screenplay notes, not screenplay replacement.', href: 'https://screnie.com', thumb: 'images/screnielogo.png', thumbFilter: 'invert(1)' },
     { title: 'The Fraught', type: 'Pilot', year: 2026, desc: 'After his long-distance relationship comes to a demoralizing end, a reclusive college freshman begins reinventing himself through the seductive chaos of frat life.', href: 'pdfs/FRAUGHT 2nd full.pdf', thumb: 'images/fraught.png' },
@@ -353,7 +354,15 @@ a:hover{text-decoration:underline}
 
     // thumb
     card.thumbBox.innerHTML = '';
-    if (p.thumb){
+    if (p.thumbVideo){
+      const iframe = document.createElement('iframe');
+      iframe.src = `https://player.vimeo.com/video/${p.thumbVideo}?autoplay=1&loop=1&muted=1&background=1&controls=0`;
+      iframe.allow = 'autoplay; fullscreen';
+      iframe.frameBorder = '0';
+      iframe.style.cssText = 'width:100%;height:100%;object-fit:cover;border:none;pointer-events:none;';
+      card.thumbBox.style.overflow = 'hidden';
+      card.thumbBox.appendChild(iframe);
+    } else if (p.thumb){
       const img = document.createElement('img');
       img.alt = '';
       img.loading = 'lazy';
