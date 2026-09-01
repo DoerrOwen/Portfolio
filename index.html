@@ -93,7 +93,7 @@ a:hover{text-decoration:underline}
   position:fixed;
   top:18px;
   left:50%;
-  transform:translateX(-50%) translate(var(--hx), var(--hy));
+  transform:translateX(-50%) translate(var(--hx), var(--hy)) translateY(var(--introOffsetY,0px));
   width:min(var(--maxw), calc(100% - 48px));
   display:flex;
   align-items:center;
@@ -234,6 +234,10 @@ a:hover{text-decoration:underline}
   .links{gap:10px}
 }
 
+
+/* ---- intro fly-in ---- */
+.orbitWrap,.center{opacity:0;transition:opacity 0.8s ease}
+body.intro-done .orbitWrap,body.intro-done .center{opacity:1}
 
 /* --- iteration10 header centering --- */
 .header{
@@ -522,6 +526,14 @@ a:hover{text-decoration:underline}
     dimLight.position.set(-6, 5, -4);
     scene.add(dimLight);
 
+    // intro fly-in state
+    const INTRO_DUR = 1900;
+    const _introT0 = performance.now();
+    let _introDone = false;
+    function _easeOut(t){ return 1 - Math.pow(1 - t, 3); }
+
+    const _headerEl = document.querySelector('.header');
+
     let mouseX = 0, mouseY = 0;
     document.addEventListener('mousemove', (e) => {
       mouseX = (e.clientX / window.innerWidth) * 2 - 1;
@@ -539,9 +551,19 @@ a:hover{text-decoration:underline}
     function tick() {
       requestAnimationFrame(tick);
 
+      // intro progress
+      const _now = performance.now();
+      const _ip = Math.min(1, (_now - _introT0) / INTRO_DUR);
+      const _ie = _easeOut(_ip);
+      if (!_introDone && _ip >= 1) {
+        _introDone = true;
+        document.body.classList.add('intro-done');
+      }
+      const introRotBoost = _introDone ? 1 : (1 + 12 * (1 - _ie));
+
       const hoverBoost = document.body.classList.contains('project-active') ? 1.8 : 1.0;
-      starField.rotation.y += 0.0008 * hoverBoost;
-      starField.rotation.x += 0.0004 * hoverBoost;
+      starField.rotation.y += 0.0008 * hoverBoost * introRotBoost;
+      starField.rotation.x += 0.0004 * hoverBoost * introRotBoost;
 
       const targetRotY = mouseX * 0.2;
       const targetRotX = -mouseY * 0.12;
@@ -552,7 +574,8 @@ a:hover{text-decoration:underline}
       const baseZ = 8;
       const zoomAmount = isIOS() ? 1.8 : 2.8;
       const sp = (typeof window.scrollProgress === 'number') ? window.scrollProgress : 0;
-      const targetZ = baseZ - sp * zoomAmount;
+      const introZ = _introDone ? 0 : (1 - _ie) * 20;
+      const targetZ = baseZ - sp * zoomAmount + introZ;
 
       camera.position.x += (mouseX * 0.5 - camera.position.x) * 0.03;
       camera.position.y += (-mouseY * 0.3 - camera.position.y) * 0.03;
@@ -568,11 +591,19 @@ a:hover{text-decoration:underline}
         avatar.style.setProperty('--pfpS', pfpS.toString());
       }
 
-      const head = document.querySelector('.header');
-      if (head) {
+      if (_headerEl) {
         // subtle drift like the original: stays pinned but "breathes" with the mouse
-        head.style.setProperty('--hx', (mouseX * 10).toFixed(2) + 'px');
-        head.style.setProperty('--hy', (mouseY * 6).toFixed(2) + 'px');
+        _headerEl.style.setProperty('--hx', (mouseX * 10).toFixed(2) + 'px');
+        _headerEl.style.setProperty('--hy', (mouseY * 6).toFixed(2) + 'px');
+        // fly from center to top and fade in during intro
+        if (_ip < 1) {
+          const offsetY = (window.innerHeight / 2 - _headerEl.offsetHeight / 2 - 18) * (1 - _ie);
+          _headerEl.style.setProperty('--introOffsetY', offsetY.toFixed(2) + 'px');
+          _headerEl.style.opacity = _ie.toFixed(3);
+        } else {
+          _headerEl.style.setProperty('--introOffsetY', '0px');
+          _headerEl.style.opacity = '';
+        }
       }
 
       camera.lookAt(new THREE.Vector3(0, 0, 0));
